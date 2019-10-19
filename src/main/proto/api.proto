@@ -1,0 +1,18 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "com.yt8492.grpcchat.protobuf";
+option java_outer_classname = "ChatProto";
+
+package api;
+
+message MessageRequest {
+    string message = 1;
+}
+
+message MessageResponse {
+    string message = 1;
+}
+
+service ChatService {
+    rpc ExecStream (stream MessageRequest) returns (stream MessageResponse);
+}
