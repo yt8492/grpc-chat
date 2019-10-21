@@ -5,26 +5,35 @@ import com.yt8492.grpcchat.protobuf.MessageRequest
 import com.yt8492.grpcchat.protobuf.MessageResponse
 import io.grpc.stub.StreamObserver
 import org.lognet.springboot.grpc.GRpcService
+import java.util.concurrent.ConcurrentHashMap
 
 @GRpcService
 class GRpcService : ChatServiceGrpc.ChatServiceImplBase() {
+
+    private val observers = ConcurrentHashMap.newKeySet<StreamObserver<MessageResponse>?>()
+
     override fun execStream(
             responseObserver: StreamObserver<MessageResponse>?
-    ): StreamObserver<MessageRequest> =
-            object : StreamObserver<MessageRequest> {
-                override fun onNext(value: MessageRequest?) {
-                    val res = MessageResponse.newBuilder()
-                            .setMessage(value?.message)
-                            .build()
-                    responseObserver?.onNext(res)
-                }
-
-                override fun onError(t: Throwable?) {
-                    t?.printStackTrace()
-                }
-
-                override fun onCompleted() {
-                    responseObserver?.onCompleted()
+    ): StreamObserver<MessageRequest> {
+        observers.add(responseObserver)
+        return object : StreamObserver<MessageRequest> {
+            override fun onNext(value: MessageRequest?) {
+                val res = MessageResponse.newBuilder()
+                        .setMessage(value?.message)
+                        .build()
+                observers.forEach {
+                    it?.onNext(res)
                 }
             }
+
+            override fun onError(t: Throwable?) {
+                t?.printStackTrace()
+                observers.remove(responseObserver)
+                responseObserver?.onCompleted()
+            }
+
+            override fun onCompleted() {
+            }
+        }
+    }
 }
