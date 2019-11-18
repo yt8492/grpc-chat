@@ -1,6 +1,7 @@
 package com.yt8492.grpcchat
 
 import com.yt8492.grpcchat.protobuf.ChatServiceGrpc
+import com.yt8492.grpcchat.protobuf.Empty
 import com.yt8492.grpcchat.protobuf.MessageRequest
 import com.yt8492.grpcchat.protobuf.MessageResponse
 import io.grpc.stub.StreamObserver
@@ -18,6 +19,7 @@ class GRpcService : ChatServiceGrpc.ChatServiceImplBase() {
         observers.add(responseObserver)
         return object : StreamObserver<MessageRequest> {
             override fun onNext(value: MessageRequest?) {
+                println(value?.message)
                 val res = MessageResponse.newBuilder()
                         .setMessage(value?.message)
                         .build()
@@ -33,7 +35,12 @@ class GRpcService : ChatServiceGrpc.ChatServiceImplBase() {
             }
 
             override fun onCompleted() {
+                println("onCompleted")
             }
         }
+    }
+
+    override fun healthCheck(request: Empty?, responseObserver: StreamObserver<Empty>?) {
+        responseObserver?.onNext(request)
     }
 }
