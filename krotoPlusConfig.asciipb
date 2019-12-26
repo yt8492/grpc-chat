@@ -1,0 +1,5 @@
+proto_builders {
+    filter { exclude_path: "google/*" }
+    unwrap_builders: true
+    use_dsl_markers: true
+}
